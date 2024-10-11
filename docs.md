@@ -10,6 +10,9 @@ it's time to polish up a new shiny automation framework with ansible.
 btw-img endeavors to deliver a sensible baseline for a complete system
 based around Debian. Ideally, this project an be a higher-caliber wizardlab.
 
+finding this helpful:
+[https://sumit-ghosh.com/posts/create-vm-using-libvirt-cloud-images-cloud-init/]\
+(https://sumit-ghosh.com/posts/create-vm-using-libvirt-cloud-images-cloud-init/)
 ## Finding a focus
 Wizardlab was a lot of fun to design, but it's too loose about how it operates.
 While I could go ahead and rework all of that code, I feel like taking some
