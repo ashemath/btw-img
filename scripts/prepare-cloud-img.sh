@@ -14,14 +14,14 @@ if [ ! -d "./images/$SERIAL/" ] ; then
 fi
 
 echo "Fetching checksum reference file!"
-wget https://cloud.debian.org/images/cloud/bookworm/$SERIAL/SHA512SUMS -O ./images/$SERIAL/SHA512SUMS
+wget https://cloud.debian.org/images/cloud/bookworm/$SERIAL/SHA512SUMS \
+    -O ./images/$SERIAL/SHA512SUMS;
 
 echo "Checking for $LATEST archive..."
 if [ ! -e "./images/$SERIAL/$ARCHIVE" ] ; then
     echo "Archive not found! Downloading...";
     wget $IMAGEURL -O ./images/$SERIAL/$ARCHIVE;
 fi
-
 
 SUM=$(sha512sum ./images/$SERIAL/$ARCHIVE | cut -d " " -f1);
 CHECK=$(grep $(sha512sum ./images/$SERIAL/$ARCHIVE | cut -d " " -f1) ./images/$SERIAL/SHA512SUMS \
