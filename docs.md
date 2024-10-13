@@ -115,26 +115,17 @@ automation workflow. For example, the `prepare-cloud-img.sh` script is POSIX she
 I went with the shell script because I didn't need do much in terms of variable manipulation.
 I could do more with variables easier with `bash` scripting, but bash is a little
 different on each distribution, so portability is a small issue with `bash` scripting.
+I take the same approach with `launch-virtual-disk.sh`. After running, you'll have a Debian
+virtual machine setup according to values set in `defaults.ini`
 
-There's two rivaling ideas in my mind...
+Let's say you are using the default settings in this project's `defaults.ini`. The
+`launch-virtual-machine.sh` script asks you to enter a password when it generates your
+ssh key.
 
-### Python Idea
-Python is available with minimal server function, and it's efficient at slinging strings
-around and building complex text output, so `virt-install-with-cloud-init.py` drives the
-virt-install subtask. Providing a small `config-init.yml` file to edit instead of a
-static cloud-init, and the python script can work interactively or just use sensible
-defaults if not provided in `config-init.yml`
+Run `sudo virsh net-dhcp-leases --network default` to find the IP of your VM.
+From the project directory, you can ssh the VM you just stood up with:
+`ssh btw@192.168.122.X`
 
-### More POSIX shell
-Why not be bold and forgo heavy customization of cloud-init data in favor of a
-simpler approach that still reads an easy to edit configuration file, but only
-produces the one style of launchable vm?
-
-Provide the path to the SSH key, a username, and be done with it. The ip-address
-can be dynamic and attached to your default VM networking. We only need to boot it
-once before we crack it open and extract what we are after.
-`virt-install-with-cloud-init.sh` would read the `config-init.ini` to see if
-you have any opinons first, but it should run fine with the default file.
 
 ## Delivery System
 If all you want to do is produce a single VM for development, the project produces
