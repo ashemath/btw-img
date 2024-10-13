@@ -1,11 +1,20 @@
 #!/bin/sh
 
-. ./defaults.ini
+if [ -z $1 ] ; then
+    echo "loading default.ini"
+    . ./default.ini;
+else
+    if [ $1 = '-c' ] ; then
+        echo "loading config from $2";
+        . ./$2;
+    fi
+fi
 
 if [ -z $NAME ] ; then
     NAME="test";
 fi
-DIR="./$NAME";
+DIR="${VMPATH}/${NAME}";
+echo "VMPATH is $VMPATH. DIR is $DIR"
 MDPATH=$DIR/meta-data;
 UDPATH=$DIR/user-data;
 
@@ -40,14 +49,13 @@ echo "user set to: $USER"
 if [ -z $SSHPUBFILE ]; then
     SSHPUBFILE=./creds/$NAME.pub;
 fi
-echo "SSHPUBFILE: $SSHPUBFILE"
 
 if [ ! -f $SSHPUBFILE ]; then
     echo "SSH Key not found. Creating one non-interactively.."
     ssh-keygen -C $USER@$NAME -f ./creds/$NAME
 fi
 
-"Injecting $SSHPUBFILE"
+echo "Injecting ""$SSHPUBFILE"" "
 SSHPUBKEY=$(cat $SSHPUBFILE);
 
 # Let's start with the meta-data file
@@ -58,7 +66,6 @@ echo "#cloud-config" > $UDPATH;
 echo "" >> $UDPATH;
 echo "users:" >> $UDPATH;
 echo "  - name: $USER" >> $UDPATH;
-echo "    hashed_passwd: $(cat ./creds/pass.hash)" >> $UDPATH;
 echo "    ssh_authorized_keys:" >> $UDPATH;
 echo "      - $SSHPUBKEY" >> $UDPATH;
 echo "    sudo: [\"ALL=(ALL) NOPASSWD:ALL\"]" >> $UDPATH;
@@ -72,3 +79,5 @@ echo "Launching VM"
 echo $PWD
 virt-install --check all=off --name=$NAME --ram=2048 --boot uefi --vcpus=2 --import --disk path=$NAME.qcow2,format=qcow2 --disk path=cidata.iso,device=cdrom --os-variant name=debian12 --network bridge=virbr0,model=virtio --graphics vnc,listen=0.0.0.0 --noautoconsole
 
+cd ..
+env NAME=$NAME USER=$USER SSHKEYFILE=$SSHKEYFILE ./scripts/verify-deployment.sh
