@@ -1,20 +1,17 @@
 #!/bin/sh
 
-ARCHIVEPATH="/tmp/"
 START=$PWD;
 
-if [ -z $1 ] ; then
-    echo "loading default.ini"
-    . ./default.ini;
-else
-    if [ $1 = '-c' ] ; then
-        echo "loading config from $2";
-        . ./$2;
-    fi
+# Import default values. Substitute values provided by config.ini if supplied
+. ./default.ini;
+if [ $1 = '-c' ] ; then
+    echo "loading config from $2";
+    . ./$2;
 fi
 
+START=$PWD;
+ARCHIVEPATH="/tmp/"
 DIR="${VMPATH}/${NAME}";
-echo "VMPATH is ${VMPATH}. DIR is ${DIR} ARCHIVEPATH is ${ARCHIVEPATH}"
 MDPATH=${DIR}/meta-data;
 UDPATH=${DIR}/user-data;
 
@@ -42,7 +39,7 @@ fi
 
 if [ ! -f $SSHPUBFILE ]; then
     echo "SSH Key not found. Creating one non-interactively.."
-    ssh-keygen -C $USER@$NAME -f ./creds/$NAME
+    ssh-keygen -N '' -C $USER@$NAME -f ./creds/$NAME
 fi
 
 echo "Injecting ""$SSHPUBFILE"" "
@@ -67,7 +64,7 @@ echo "Generating cloud-init .iso for customizing at boot..."
 genisoimage -output cidata.iso -V cidata -r -J user-data meta-data
 echo "Launching VM"
 echo $PWD
-virt-install --check all=off --name=$NAME --ram=2048 --boot uefi --vcpus=2 --import --disk path=$NAME.qcow2,format=qcow2 --disk path=cidata.iso,device=cdrom --os-variant name=debian12 --network bridge=virbr0,model=virtio --graphics vnc,listen=0.0.0.0 --noautoconsole
+virt-install --check all=off --name=$NAME --ram=$RAM --boot uefi --vcpus=$VCPUS --import --disk path=$NAME.qcow2,format=qcow2 --disk path=cidata.iso,device=cdrom --os-variant name=debian12 --network bridge=virbr0,model=virtio --graphics vnc,listen=0.0.0.0 --noautoconsole
 
 cd $START
 env NAME=$NAME USER=$USER SSHKEYFILE=$SSHKEYFILE ./scripts/verify-deployment.sh

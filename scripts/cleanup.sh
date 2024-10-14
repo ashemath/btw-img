@@ -1,12 +1,8 @@
 #!/bin/sh
-if [ -z $1 ] ; then
-    echo "loading default.ini"
-    . ./default.ini
-else
-    if [ $1 = '-c' ] ; then
-        echo "loading config from $2";
-        . ./$2;
-    fi
+. ./default.ini
+if [ $1 = '-c' ] ; then
+    echo "loading config from $2";
+    . ./$2;
 fi
 
 virsh shutdown $NAME

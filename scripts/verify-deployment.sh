@@ -26,6 +26,6 @@ do
     else
         PING=1;
         IP=$(host $NAME | head -n1 | cut -d" " -f4)
-        echo -e "Deployment successful! try connecting with:\nssh -i $SSHKEYFILE $USER@$IP"
+        echo -e "Deployment successful! try connecting with:\nssh -i $SSHKEYFILE -o StrictHostKeyChecking=no $USER@$IP"
     fi
 done

@@ -1,7 +1,35 @@
 # btw-img
 System deployment and configuration tools by Bill the Wizard
 
-## Status: Needs Makefile...
+## Philosophy
+The goal is to have all the VMs and archives live in /tmp/.
+Trying to play nice with networked /home/ directories, and 
+to force good automation practice.
+
+## How to try it out
+### Makefile
+I'll utilize a Makefile to feature the capabilities of this project.
+At the moment, we launch the VM specified in default.ini, and we
+SSH a couple instructions to update apt and install docker.
+
+To launch a fresh Debian12 Virtual Machine and install Docker engine:
+```
+$ make default
+```
+
+To clean up after that demonstration:
+```
+$ make clean_default
+```
+
+If you want to put this project through it's paces, maybe to
+see if you have libvirt working right:
+```
+$ make test
+```
+This is launching the default VM and destroying it after all that work.
+
+### The Scripts
 The project consists of a few scripts:
 ### scripts/prepare-cloud-img.sh: 
 Download and prepare for install the latest Debian12 Generic Cloud image
@@ -32,9 +60,3 @@ I need to automate deploying an ansible controller and PXE server.
 Might just launch a VM with ./scripts/launch-virtual-machine.sh
 and write a script to configure an ansible inventory and execute an
 ansible playbook.
-.
-Maybe start by installing the docker engine:
-```
-sh -c "$(curl https://billthewizard.net/_static/install_docker.sh)"
-
-```
