@@ -9,6 +9,10 @@ to force good automation practice.
 ## How to try it out
 
 ### Setup Notes
+Draft of the Required packages:
+```
+
+```
 To use this project as a normal user without special libvirt group
 membership, you need the `qemu-bridge-helper`.
 
@@ -66,9 +70,9 @@ Example usage:
 Wait for Libvirtd networking to update the DHCP address of our virtual machine,
 and display a helpful suggestion on how to connect to the shiny new virtual machine.
 
-It's a bit of a libvirt hack that repeatedly ping the VM name until it
-can resolve. At that point, the script calls `host` and parses the IP address.
-The suggested SSH command is printed last.
+The script runs `host -a $NAME 192.168.122.1`, so it's asking the default VM network virbr0 to resolve the VM by name. Next,
+we parse the IP address. The suggested SSH command is printed last. I exploit this in the makefile to create an executable for
+piping commands to the VM.
 
 ### scripts/cleanup.sh: 
 Cleanup the files and configuration associated with a .ini file
