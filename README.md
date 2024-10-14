@@ -9,14 +9,22 @@ Download and prepare for install the latest Debian12 Generic Cloud image
 
 ### scripts/launch-virtual-machine.sh: 
 Launch a Virtual machine based on the contents of a .ini file.  
+Example usage:
 `./scripts/launch-virtual-machine.sh -c default.ini`
 
 ### scripts/verify-deployment.sh:
+Example usage:
+`./scripts/verify-deployment.sh -c default.ini`
 Wait for Libvirtd networking to update the DHCP address of our virtual machine,
 and display a helpful suggestion on how to connect to the shiny new virtual machine.
 
+It's a bit of a libvirt hack that repeatedly ping the VM name until it
+can resolve. At that point, the script calls `host` and parses the IP address.
+The suggested SSH command is printed last.
+
 ### scripts/cleanup.sh: 
 Cleanup the files and configuration associated with a .ini file
+Example usage:
 `./script/cleanup -c default.ini`
 
 ## What next?

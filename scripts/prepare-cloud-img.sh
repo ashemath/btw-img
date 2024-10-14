@@ -1,12 +1,11 @@
 #!/bin/sh
-
+ARCHIVEPATH="/tmp/"
 SERIAL="latest"
 TYPE="generic";
 PLATFORM="amd64";
 IMAGE="debian-12-$TYPE-$PLATFORM";
 ARCHIVE="$IMAGE.tar.xz";
 IMAGEURL="https://cloud.debian.org/images/cloud/bookworm/$SERIAL/$ARCHIVE";
-ARCHIVEPATH="/tmp/"
 
 if [ ! -d "$ARCHIVEPATH/images/$SERIAL/" ] ; then
     echo "Subdirectory for $SERIAL not found. Creating...";

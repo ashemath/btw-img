@@ -1,5 +1,6 @@
 #!/bin/sh
 
+ARCHIVEPATH="/tmp/"
 START=$PWD;
 
 if [ -z $1 ] ; then
