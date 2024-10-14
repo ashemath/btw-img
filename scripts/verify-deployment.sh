@@ -10,6 +10,7 @@ do
     sleep 3;
     IP=$(env LIBVIRT_DEFAULT_URI="qemu:///system" virsh net-dhcp-leases --network default \
         | grep $NAME | sed "s/\ /+/g" | cut -d"+" -f16 | cut -d'/' -f1);
+    echo $IP
     TESTPING=$(ping -c 1 $IP | grep 100%);
     if [ "$TESTPING" != "" ] ; then
         echo "..."
