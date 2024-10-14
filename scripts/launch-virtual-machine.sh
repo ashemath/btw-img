@@ -10,9 +10,6 @@ else
     fi
 fi
 
-if [ -z $NAME ] ; then
-    NAME="test";
-fi
 DIR="${VMPATH}/${NAME}";
 echo "VMPATH is $VMPATH. DIR is $DIR"
 MDPATH=$DIR/meta-data;
@@ -39,12 +36,6 @@ fi
 # Copy over the converted vanilla Debian .qcow2 disk
 cp ./images/latest/disk.qcow2 $DIR/$NAME.qcow2
 qemu-img resize $DIR/$NAME.qcow2 +${SIZE}G
-
-# Inject more config value
-if [ -z $USER ]; then
-    USER="btw";
-fi
-echo "user set to: $USER"
 
 if [ -z $SSHPUBFILE ]; then
     SSHPUBFILE=./creds/$NAME.pub;
