@@ -41,6 +41,13 @@ To launch a fresh Debian12 Virtual Machine and install Docker engine:
 $ make default
 ```
 
+To open up the machine in virt-manager, you may need to click on 
+"File -> Add Connection", click the "Hypervisor:" dropdown, and select 
+"QEMU/KVM User Session".
+
+User Session VMs show up under a sepearate section than other "System" VMs
+that were started with `libvirt` group permissions.
+
 To clean up after that demonstration:
 ```
 $ make clean_default
