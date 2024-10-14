@@ -20,12 +20,13 @@ echo "Waiting for connection..."
 while [ $PING = 0 ];
 do
     sleep 3;
-    TESTPING=$(ping -c 1 $NAME 2> /dev/null | grep " 0%");
+    IP=$(host -a $NAME 192.168.122.1 | grep "A.*192.168.122" | sed "s/\t/+/g" | cut -d"+" -f7 | tail -n1);
+    TESTPING=$(ping -c 1 $IP 2> /dev/null | grep " 0%");
     if [ -z "$TESTPING" ] ; then
         echo "..."
     else
         PING=1;
-        IP=$(host $NAME | head -n1 | cut -d" " -f4)
         echo -e "Deployment successful! try connecting with:\nssh -i $SSHKEYFILE -o StrictHostKeyChecking=no $USER@$IP"
     fi
+    sleep 1;
 done

@@ -22,7 +22,7 @@ else
     echo "$NAME Folder already exists"
 fi
 
-if [ ! -d ./creds/ ]; then
+if [ ! -d ./creds ]; then
     echo "Making creds folder..."
     mkdir ./creds;
 else
@@ -64,7 +64,7 @@ echo "Generating cloud-init .iso for customizing at boot..."
 genisoimage -output cidata.iso -V cidata -r -J user-data meta-data
 echo "Launching VM"
 echo $PWD
-virt-install --check all=off --name=$NAME --ram=$RAM --boot uefi --vcpus=$VCPUS --import --disk path=$NAME.qcow2,format=qcow2 --disk path=cidata.iso,device=cdrom --os-variant name=debian12 --network bridge=virbr0,model=virtio --graphics vnc,listen=0.0.0.0 --noautoconsole
+virt-install --check all=off --name=$NAME --ram=$RAM --boot uefi --vcpus=$VCPUS --import --disk path=$NAME.qcow2,format=qcow2 --disk path=cidata.iso,device=cdrom --os-variant name=debian11 --network bridge=virbr0,model=virtio --graphics vnc,listen=0.0.0.0 --noautoconsole
 
 cd $START
 env NAME=$NAME USER=$USER SSHKEYFILE=$SSHKEYFILE ./scripts/verify-deployment.sh

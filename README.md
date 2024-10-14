@@ -7,6 +7,26 @@ Trying to play nice with networked /home/ directories, and
 to force good automation practice.
 
 ## How to try it out
+
+### Setup Notes
+To use this project as a normal user without special libvirt group
+membership, you need the `qemu-bridge-helper`.
+
+To install qemu-bridge-helper:
+```
+sudo apt install qemu-system-common
+sudo dnf install qemu-system-common
+```
+
+In order for the qemu-bridge-helper to work, it needs to have `setuid`
+configured. Also, we need a file `/etc/qemu/bridge.conf` On Redhat, this might already be in place:
+```
+sudo chmod u+s /usr/lib/qemu/qemu-bridge-helper
+ls -la /usr/lib/qemu/qemu-bridge-helper
+sudo echo "allow virbr0" > /etc/qemu/bridge.conf
+```
+
+
 ### Makefile
 I'll utilize a Makefile to feature the capabilities of this project.
 At the moment, we launch the VM specified in default.ini, and we

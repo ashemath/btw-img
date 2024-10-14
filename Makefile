@@ -1,5 +1,6 @@
 default: 
 	./scripts/prepare-cloud-img.sh
+	mkdir ./creds
 	./scripts/launch-virtual-machine.sh -c default.ini | tail -n1 > ./creds/default.ssh
 	chmod u+x ./creds/default.ssh
 	echo "sudo apt-get update" | ./creds/default.ssh
