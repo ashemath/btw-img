@@ -16,6 +16,12 @@ To launch a fresh Debian12 Virtual Machine and install Docker engine:
 ```
 $ make default
 ```
+Make creates a executable file to launch a ssh session. Execute that file,
+and take Docker for a spin:
+```
+user@Local $./creds/default.ssh
+btw@test $ docker run hello-world
+```
 
 To clean up after that demonstration:
 ```
