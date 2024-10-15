@@ -1,14 +1,10 @@
 #!/bin/sh
 
-#if [ -z $1 ] ; then
-#    echo "loading default.ini"
-#    . ./default.ini;
-#else
-#    if [ $1 = '-c' ] ; then
-#        echo "loading config from $2";
-#        . ./$2;
-#    fi
-#fi
+. configs/default.ini;
+if [ $1 = '-c' ] ; then
+    echo "loading config from $2";
+    . $2;
+fi
 
 
 ## Wait for the IP address to update in libvirt's DHCP service
@@ -20,8 +16,10 @@ echo "Waiting for connection..."
 while [ $PING = 0 ];
 do
     sleep 3;
-    IP=$(host -a $NAME 192.168.122.1 | grep "A.*192.168.122" | sed "s/\t/+/g" | cut -d"+" -f7 | tail -n1);
-    TESTPING=$(ping -c 1 $IP 2> /dev/null | grep " 0%");
+    echo "NAME is $NAME"
+    IP=$(dig $NAME @192.168.122.1 | grep ".*IN.*A.*192.168.122" | sed "s/\t/+/g" | cut -d"+" -f7);
+    echo "IP is set to: $IP";
+    TESTPING=$(ping -c 1 $IP | grep " 0%");
     if [ -z "$TESTPING" ] ; then
         echo "..."
     else
