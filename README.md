@@ -55,6 +55,9 @@ sed -i "s/default/testvm/" configs/testvm.ini
 
 ### launch the new scenario
 ./btw-img testvm
+
+### Cleanup the new scenario
+./btw-img clean testvmm
 ```
 
 ### Makefile
