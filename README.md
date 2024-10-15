@@ -10,9 +10,11 @@ to force good automation practice.
 
 ### Setup Notes
 Draft of the Required packages:
+On Debian:
+```
+sudo apt install bind9-dnsutils qemu-system libvirt-daemon-system qemu-system-common
 ```
 
-```
 To use this project as a normal user without special libvirt group
 membership, you need the `qemu-bridge-helper`.
 
@@ -24,12 +26,27 @@ sudo dnf install qemu-system-common
 
 In order for the qemu-bridge-helper to work, it needs to have `setuid`
 configured. Also, we need a file `/etc/qemu/bridge.conf` On Redhat, this might already be in place:
+Here's how we get fixed up on Debian:
 ```
 sudo chmod u+s /usr/lib/qemu/qemu-bridge-helper
 ls -la /usr/lib/qemu/qemu-bridge-helper
 sudo echo "allow virbr0" > /etc/qemu/bridge.conf
 ```
 
+### btw-img script
+The btw-img script is an interface to the Makefile. The second level of control
+lets us setup "scenarios" that consist of multiple calls to Make.
+For example:
+```
+### Launches the 2 VCPU 2048MB 10GB "default" System
+./btw-img default
+
+### Launches the 4 VCPU 4096MB 20GB "docker" System
+./btw-img docker
+
+### Does cleanup on all configured scenarios 
+./btw-img clean
+```
 
 ### Makefile
 I'll utilize a Makefile to feature the capabilities of this project.
