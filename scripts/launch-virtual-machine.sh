@@ -3,10 +3,11 @@
 START=$PWD;
 
 # Import default values. Substitute values provided by config.ini if supplied
-. ./default.ini;
+. configs/default.ini;
 if [ $1 = '-c' ] ; then
-    echo "loading config from $2";
-    . ./$2;
+    CONFIG=$2
+    echo "loading config from $CONFIG";
+    . $CONFIG;
 fi
 
 START=$PWD;
@@ -67,4 +68,9 @@ echo $PWD
 virt-install --check all=off --name=$NAME --ram=$RAM --boot uefi --vcpus=$VCPUS --import --disk path=$NAME.qcow2,format=qcow2 --disk path=cidata.iso,device=cdrom --os-variant name=debian11 --network bridge=virbr0,model=virtio --graphics vnc,listen=0.0.0.0 --noautoconsole
 
 cd $START
-env NAME=$NAME USER=$USER SSHKEYFILE=$SSHKEYFILE ./scripts/verify-deployment.sh
+echo "Starting deployment verification!..."
+if [ -z $1 ] ; then
+    ./scripts/verify-deployment.sh -c ./configs/default.ini
+else
+    ./scripts/verify-deployment.sh -c $CONFIG
+fi

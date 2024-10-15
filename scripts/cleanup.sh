@@ -1,8 +1,8 @@
 #!/bin/sh
-. ./default.ini
+. configs/default.ini
 if [ $1 = '-c' ] ; then
     echo "loading config from $2";
-    . ./$2;
+    . $2;
 fi
 
 virsh shutdown $NAME

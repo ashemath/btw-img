@@ -1,0 +1,17 @@
+#!/bin/sh
+
+SCENARIO=$1
+
+case "$SCENARIO" in
+    docker) 
+        make docker;;
+    default)
+        make default;;
+    clean)
+        make clean_default;
+        make clean_docker;
+        ;;
+    *)
+        echo "Scenario $SCENARIO not recognized. Try 'default', 'docker', or 'clean'."
+        ;;
+esac
