@@ -2,8 +2,9 @@
 
 SCENARIO=$1
 
-if [ $SCENARIO = "clean" ] && [ -z $2 ] ; then
+if [ $SCENARIO = "clean" ] && [ -n $2 ] ; then
     CONFIG=$2;
+    SCENARIO="clean $CONFIG"
     echo "adhoc initiated!"
 fi
 
@@ -12,13 +13,13 @@ case "$SCENARIO" in
         make docker;;
     "default")
         make default;;
+    "clean $CONFIG")
+        ./scripts/cleanup.sh -c configs/$CONFIG.ini
+        ;;
     "clean")
         make clean_default > /dev/null 2>&1;
         make clean_docker  > /dev/null 2>&1;
         echo "Scenarios cleaned up!";
-        ;;
-    "clean $CONFIG")
-        ./scripts/cleanup.sh -c configs/$CONFIG.ini
         ;;
     *)
         if [ -f configs/$SCENARIO.ini ] ; then
