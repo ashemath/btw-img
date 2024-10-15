@@ -23,11 +23,11 @@ if [ $SCENARIO = "launch" ] && [ $BATCH -eq 0 ]; then
     exit 0;
 # Clean a singular VM
 elif [ $SCENARIO = "clean" ] && [ $BATCH -eq 0 ]; then
-    ./scripts/prepare-cloud-img.sh
     ./scripts/cleanup.sh -c configs/$CONFIG.ini;
     exit 0;
 # Launch all VMs
 elif [ $SCENARIO = "launch" ] && [ $BATCH -eq 1 ]; then
+    ./scripts/prepare-cloud-img.sh
     for config in configs/*; do ./scripts/launch-virtual-machine.sh -c $config; done;
     exit 0;
 # Clean all VMs
