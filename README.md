@@ -39,13 +39,13 @@ lets us setup "scenarios" that consist of multiple calls to Make.
 For example:
 ```
 ### Launches the 2 VCPU 2048MB 10GB "default" System
-./btw-img default
+./btw-img launch default
 
 ### Launches the 4 VCPU 4096MB 20GB "docker" System
-./btw-img docker
+./btw-img launch docker
 
-### Does cleanup on all the demo scenarios 
-./btw-img clean
+### Does cleanup on all VMs under configs/
+./btw-img clean all
 
 ### Copy the configs/default.ini to a new file called configs/test.ini
 cp configs/defaults.ini configs/testvm.ini
@@ -53,11 +53,14 @@ cp configs/defaults.ini configs/testvm.ini
 ### Change the name from default to testvm
 sed -i "s/default/testvm/" configs/testvm.ini
 
-### launch the new scenario
-./btw-img testvm
+### launch the new VM
+./btw-img launch testvm
 
-### Cleanup the new scenario
+### Cleanup the new VM
 ./btw-img clean testvmm
+
+## Connect to a VM by executing the .ssh file under creds/
+./creds/testvm.ssh
 ```
 
 ### Makefile

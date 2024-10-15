@@ -1,31 +1,37 @@
 #!/bin/sh
 
-SCENARIO=$1
-
-if [ $SCENARIO = "clean" ] && [ -n $2 ] ; then
+BATCH=0;
+SCENARIO=$1;
+if [ $SCENARIO = "launch" ] || [ $SCENARIO = "clean" ] ; then
     CONFIG=$2;
-    SCENARIO="clean $CONFIG"
-    echo "adhoc initiated!"
 fi
 
-case "$SCENARIO" in
-    "docker") 
-        make docker;;
-    "default")
-        make default;;
-    "clean $CONFIG")
-        ./scripts/cleanup.sh -c configs/$CONFIG.ini
-        ;;
-    "clean")
-        make clean_default > /dev/null 2>&1;
-        make clean_docker  > /dev/null 2>&1;
-        echo "Scenarios cleaned up!";
-        ;;
-    *)
-        if [ -f configs/$SCENARIO.ini ] ; then
-            scripts/launch-virtual-machine.sh  -c configs/$SCENARIO.ini
-        else
-            echo "Scenario $SCENARIO not recognized. Try 'default', 'docker', or 'clean'."
-        fi
-        ;;
-esac
+if [ $CONFIG = "all" ] ; then
+    BATCH=1;
+    echo "Batch detected!";
+fi
+
+if [ ! -f configs/$CONFIG.ini ] && [ $BATCH -eq 0 ]; then
+    echo "Config doesn't exist under configs for $2."
+    exit 1;
+fi
+
+# Launch a singular VM
+if [ $SCENARIO = "launch" ] && [ $BATCH -eq 0 ]; then
+    ./scripts/prepare-cloud-img.sh
+    ./scripts/launch-virtual-machine.sh -c configs/$CONFIG.ini;
+    exit 0;
+# Clean a singular VM
+elif [ $SCENARIO = "clean" ] && [ $BATCH -eq 0 ]; then
+    ./scripts/prepare-cloud-img.sh
+    ./scripts/cleanup.sh -c configs/$CONFIG.ini;
+    exit 0;
+# Launch all VMs
+elif [ $SCENARIO = "launch" ] && [ $BATCH -eq 1 ]; then
+    for config in configs/*; do ./scripts/launch-virtual-machine.sh -c $config; done;
+    exit 0;
+# Clean all VMs
+elif [ $SCENARIO = "clean" ] && [ $BATCH -eq 1 ]; then
+    for config in configs/*; do ./scripts/cleanup.sh -c $config; done;
+    exit 0;
+fi
