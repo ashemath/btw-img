@@ -2,16 +2,29 @@
 
 SCENARIO=$1
 
+if [ $SCENARIO = "clean" ] && [ -z $2 ] ; then
+    CONFIG=$2;
+    echo "adhoc initiated!"
+fi
+
 case "$SCENARIO" in
-    docker) 
+    "docker") 
         make docker;;
-    default)
+    "default")
         make default;;
-    clean)
-        make clean_default;
-        make clean_docker;
+    "clean")
+        make clean_default > /dev/null 2>&1;
+        make clean_docker  > /dev/null 2>&1;
+        echo "Scenarios cleaned up!";
+        ;;
+    "clean $CONFIG")
+        ./scripts/cleanup.sh -c configs/$CONFIG.ini
         ;;
     *)
-        echo "Scenario $SCENARIO not recognized. Try 'default', 'docker', or 'clean'."
+        if [ -f configs/$SCENARIO.ini ] ; then
+            scripts/launch-virtual-machine.sh  -c configs/$SCENARIO.ini
+        else
+            echo "Scenario $SCENARIO not recognized. Try 'default', 'docker', or 'clean'."
+        fi
         ;;
 esac

@@ -44,8 +44,17 @@ For example:
 ### Launches the 4 VCPU 4096MB 20GB "docker" System
 ./btw-img docker
 
-### Does cleanup on all configured scenarios 
+### Does cleanup on all the demo scenarios 
 ./btw-img clean
+
+### Copy the configs/default.ini to a new file called configs/test.ini
+cp configs/defaults.ini configs/testvm.ini
+
+### Change the name from default to testvm
+sed -i "s/default/testvm/" configs/testvm.ini
+
+### launch the new scenario
+./btw-img testvm
 ```
 
 ### Makefile
