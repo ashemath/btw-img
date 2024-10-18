@@ -33,31 +33,30 @@ ls -la /usr/lib/qemu/qemu-bridge-helper
 sudo echo "allow virbr0" > /etc/qemu/bridge.conf
 ```
 
-### btw-img script
-The btw-img script is an interface to the Makefile. The second level of control
-lets us setup "scenarios" that consist of multiple calls to Make.
+### vmctl script
+The vmctl script is an interface to scripts that manage the lifecycle of the VMs. 
 For example:
 ```
 ### Launches the 2 VCPU 2048MB 10GB "default" System
-./btw-img launch default
+./vmctl launch default
 
 ### Launches the 4 VCPU 4096MB 20GB "docker" System
-./btw-img launch docker
+./vmctl launch docker
 
 ### Does cleanup on all VMs under configs/
-./btw-img clean all
+./vmctl clean all
 
 ### Copy the configs/default.ini to a new file called configs/test.ini
-cp configs/defaults.ini configs/testvm.ini
+cp conf.d/default.conf conf.d/testvm.conf
 
 ### Change the name from default to testvm
-sed -i "s/default/testvm/" configs/testvm.ini
+sed -i "s/default/testvm/" conf.d/testvm.conf
 
 ### launch the new VM
-./btw-img launch testvm
+./vmctl launch testvm
 
 ### Cleanup the new VM
-./btw-img clean testvmm
+./vmctl clean testvmm
 
 ## Connect to a VM by executing the .ssh file under creds/
 ./creds/testvm.ssh
@@ -70,7 +69,7 @@ SSH a couple instructions to update apt and install docker.
 
 To launch a fresh Debian12 Virtual Machine and install Docker engine:
 ```
-$ make default
+$ make docker
 ```
 
 To open up the machine in virt-manager, you may need to click on 
@@ -79,11 +78,6 @@ To open up the machine in virt-manager, you may need to click on
 
 User Session VMs show up under a sepearate section than other "System" VMs
 that were started with `libvirt` group permissions.
-
-To clean up after that demonstration:
-```
-$ make clean_default
-```
 
 If you want to put this project through it's paces, maybe to
 see if you have libvirt working right:
@@ -99,13 +93,13 @@ Download and prepare for install the latest Debian12 Generic Cloud image
 `./scripts/prepare-cloud-img.sh`
 
 ### scripts/launch-virtual-machine.sh: 
-Launch a Virtual machine based on the contents of a .ini file.  
+Launch a Virtual machine based on the contents of a .conf file.
 Example usage:
-`./scripts/launch-virtual-machine.sh -c default.ini`
+`./scripts/launch-virtual-machine.sh -c conf.d/default.conf`
 
 ### scripts/verify-deployment.sh:
 Example usage:
-`./scripts/verify-deployment.sh -c default.ini`
+`./scripts/verify-deployment.sh -c conf.d/default.conf`
 Wait for Libvirtd networking to update the DHCP address of our virtual machine,
 and display a helpful suggestion on how to connect to the shiny new virtual machine.
 
@@ -116,7 +110,7 @@ piping commands to the VM.
 ### scripts/cleanup.sh: 
 Cleanup the files and configuration associated with a .ini file
 Example usage:
-`./script/cleanup -c default.ini`
+`./script/cleanup -c conf.d/default.conf`
 
 ## What next?
 I need to automate deploying an ansible controller and PXE server.
