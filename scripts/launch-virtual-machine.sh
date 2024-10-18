@@ -3,7 +3,7 @@
 START=$PWD;
 
 # Import default values. Substitute values provided by config.ini if supplied
-. configs/default.ini;
+. conf.d/default.conf;
 if [ $1 = '-c' ] ; then
     CONFIG=$2
     echo "loading config from $CONFIG";
@@ -47,18 +47,21 @@ echo "Injecting ""$SSHPUBFILE"" "
 SSHPUBKEY=$(cat $SSHPUBFILE);
 
 # Let's start with the meta-data file
-echo "instance-id: $NAME" > $MDPATH;
-echo "local-hostname: $NAME" >> $MDPATH;
+cat << EOF > $MDPATH
+instance-id: $NAME
+local-hostname: $NAME
+EOF
 
-echo "#cloud-config" > $UDPATH;
-echo "" >> $UDPATH;
-echo "users:" >> $UDPATH;
-echo "  - name: $USER" >> $UDPATH;
-echo "    ssh_authorized_keys:" >> $UDPATH;
-echo "      - $SSHPUBKEY" >> $UDPATH;
-echo "    sudo: [\"ALL=(ALL) NOPASSWD:ALL\"]" >> $UDPATH;
-echo "    groups: sudo" >> $UDPATH;
-echo "    shell: /bin/bash" >> $UDPATH;
+cat << EOF > $UDPATH
+#cloud-config
+users:
+- name: $USER
+  ssh_authorized_keys:
+    - $SSHPUBKEY
+  sudo: ALL=(ALL) NOPASSWD:ALL
+  groups: sudo
+  shell: /bin/bash
+EOF
 
 cd $DIR
 echo "Generating cloud-init .iso for customizing at boot..."
@@ -69,8 +72,4 @@ virt-install --check all=off --name=$NAME --ram=$RAM --boot uefi --vcpus=$VCPUS 
 
 cd $START
 echo "Starting deployment verification!..."
-if [ -z $1 ] ; then
-    ./scripts/verify-deployment.sh -c ./configs/default.ini
-else
-    ./scripts/verify-deployment.sh -c $CONFIG
-fi
+./scripts/verify-deployment.sh -c $CONFIG

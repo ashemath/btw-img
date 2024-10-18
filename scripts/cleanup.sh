@@ -1,5 +1,5 @@
 #!/bin/sh
-. configs/default.ini
+. conf.d/default.conf
 if [ $1 = '-c' ] ; then
     echo "loading config from $2";
     . $2;

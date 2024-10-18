@@ -11,7 +11,7 @@ if [ $CONFIG = "all" ] ; then
     echo "Batch detected!";
 fi
 
-if [ ! -f configs/$CONFIG.ini ] && [ $BATCH -eq 0 ]; then
+if [ ! -f conf.d/$CONFIG.conf ] && [ $BATCH -eq 0 ]; then
     echo "Config doesn't exist under configs for $2."
     exit 1;
 fi
@@ -19,19 +19,19 @@ fi
 # Launch a singular VM
 if [ $SCENARIO = "launch" ] && [ $BATCH -eq 0 ]; then
     ./scripts/prepare-cloud-img.sh
-    ./scripts/launch-virtual-machine.sh -c configs/$CONFIG.ini;
+    ./scripts/launch-virtual-machine.sh -c conf.d/$CONFIG.conf;
     exit 0;
 # Clean a singular VM
 elif [ $SCENARIO = "clean" ] && [ $BATCH -eq 0 ]; then
-    ./scripts/cleanup.sh -c configs/$CONFIG.ini;
+    ./scripts/cleanup.sh -c conf.d/$CONFIG.conf;
     exit 0;
 # Launch all VMs
 elif [ $SCENARIO = "launch" ] && [ $BATCH -eq 1 ]; then
     ./scripts/prepare-cloud-img.sh
-    for config in configs/*; do ./scripts/launch-virtual-machine.sh -c $config; done;
+    for config in conf.d/*.conf; do ./scripts/launch-virtual-machine.sh -c $config; done;
     exit 0;
 # Clean all VMs
 elif [ $SCENARIO = "clean" ] && [ $BATCH -eq 1 ]; then
-    for config in configs/*; do ./scripts/cleanup.sh -c $config; done;
+    for config in conf.d/*.conf; do ./scripts/cleanup.sh -c $config; done;
     exit 0;
 fi
