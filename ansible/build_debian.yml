@@ -1,0 +1,14 @@
+---
+- name: Build debian with debootstrap
+  hosts: target
+  vars:
+    Disk: "/dev/vdb"
+    Layout: "layouts/efi-basic.yml"
+
+  tasks:
+    - name: import the partition data
+      ansible.builtin.include_vars: "{{ Layout }}"
+
+    - name: Debug task
+      ansible.builtin.debug:
+        msg: "It's working!"

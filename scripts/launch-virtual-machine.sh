@@ -32,15 +32,7 @@ fi
 
 # Copy over the converted vanilla Debian .qcow2 disk
 cp ${ARCHIVEPATH}/images/latest/disk.qcow2 ${DIR}/${NAME}.qcow2
-qemu-img resize ${DIR}/${NAME}.qcow2 +${SIZE}G
-
-if [ ! -z $BUILDPATH ] ; then
-    cd /tmp;
-    qemu-img create -f qcow2 $BUILDNAME $BUILDSIZE;
-    cd $START;
-else
-    echo "Did not create spare disk. Buildpath is $BUILDPATH";
-fi
+qemu-img resize ${DIR}/${NAME}.qcow2 +${SIZE}
 
 if [ -z $SSHPUBFILE ]; then
     SSHPUBFILE=./creds/$NAME.pub;
@@ -73,10 +65,11 @@ EOF
 
 if [ ! -z $BUILDPATH ] ; then
     echo "Adding the spare disk! buildpath is: $BUILDPATH"
-    disks="--disk path=$NAME.qcow2,format=qcow2 --disk path=$BUILDPATH,format=qcow2";
+    qemu-img create -f qcow2 $BUILDPATH $BUILDSIZE;
+    disks="--disk path=/tmp/$NAME/$NAME.qcow2,format=qcow2 --disk path=$BUILDPATH,format=qcow2";
 else
     echo "No BUILDPATH";
-    disks="--disk path=$NAME.qcow2,format=qcow2";
+    disks="--disk path=/tmp/$NAME/$NAME.qcow2,format=qcow2";
 fi
 
 cd $DIR

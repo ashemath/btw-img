@@ -42,11 +42,15 @@ if [ $SCENARIO = "launch" ] && [ $BATCH -eq 0 ]; then
     ./scripts/launch-virtual-machine.sh -c conf.d/$CONFIG.conf;
     exit 0;
 elif [ $SCENARIO = "build" ] && [ $VALIDCONFIG ]; then
-    echo "building!";
+    echo "building $CONFIG!";
     # Launch the builder vm. It has an extra empty disk attached
     env $(cat conf.d/$CONFIG.build | sed "s/#.*//g") \
     ./scripts/launch-virtual-machine.sh -c conf.d/builder.conf;
+    # Configure ansible to hit the builder VM
+    ./scripts/ansible-configure.sh builder
+    sleep 2 && echo "waiting over...";
     # Run the playbook to setup the spare drive as a configured Debian system
+    . venv/bin/activate && ansible-playbook -i ansible/inventory ansible/build_$CONFIG.yml
     # Run the playbook to partclone capture and compress the spare disk image.
     # SCP the artifacts from the remote output folder
     exit 0;

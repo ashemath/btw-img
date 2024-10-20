@@ -1,6 +1,6 @@
 # Parameters for creating the spare disk image for builder
 BUILDNAME=debian.qcow2
-BUILDPATH="/tmp/debian.qcow2"
+BUILDPATH=/tmp/debian.qcow2
 BUILDSIZE=20G
 
 PARTITIONS="./ansible/layouts/efi-basic.yml"

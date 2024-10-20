@@ -4,7 +4,7 @@ System deployment and configuration tools by Bill the Wizard
 ## Status
 The next step is a playbook that with setup the spare disk
 as a bootable .qcow disk image file. Working on the first draft of
-the playbook.
+the playbook. About to work out the partitioning and chroot work...
 
 ## Design Goal:
 Static framework of shell scripts to customize and launch Debian 
