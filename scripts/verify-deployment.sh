@@ -1,14 +1,12 @@
 #!/bin/sh
 
-. conf.d/default.conf;
-if [ $1 = '-c' ] ; then
+if [ $1 = '-c' ] && [ -f $2 ] ; then
     echo "loading config from $2";
     . $2;
 fi
 
-if [ -f  conf.d/$NAME.sh ] ; then
-    postinit="conf.d/$NAME.sh"
-    echo "Post-init detected! $postinit"
+if [ ! -z $POSTINIT ] ; then
+    echo "Post-init detected! $POSTINIT";
 fi
 
 
@@ -32,8 +30,11 @@ do
         echo "ssh -i $SSHKEYFILE -o StrictHostKeyChecking=no $USER@$IP" \
             | tee | tail -n 1 > $sshfile;
         chmod 700 $sshfile;
-        sleep 1;
-        cat $postinit | $sshfile;
+        sleep 2;
     fi
-    sleep 2;
 done
+if [ ! -z $POSTINIT ] ; then
+    echo "Running postinit!"
+    cat $POSTINIT | ./$sshfile;
+fi
+

@@ -10,17 +10,17 @@ it's time to polish up a new shiny automation framework with ansible.
 btw-img endeavors to deliver a sensible baseline for a complete system
 based around Debian. Ideally, this project an be a higher-caliber wizardlab.
 
-finding this helpful:
-[https://sumit-ghosh.com/posts/create-vm-using-libvirt-cloud-images-cloud-init/]\
-(https://sumit-ghosh.com/posts/create-vm-using-libvirt-cloud-images-cloud-init/)
+finding these helpful:
+[create-vm-using-libvirt-cloud-images-cloud-init](https://sumit-ghosh.com/posts/create-vm-using-libvirt-cloud-images-cloud-init)
+[build-a-bootable-qcow2-image-with-debootstrap](https://medium.com/@xiazihao1996/build-a-bootable-qcow2-image-with-debootstrap-ea5862e7325e)
+
 ## Finding a focus
 Wizardlab was a lot of fun to design, but it's too loose about how it operates.
 While I could go ahead and rework all of that code, I feel like taking some
 more new approaches, and I would struggle to simplify.
 
 btw-img will also meet different needs: development environment, image automation
-laboratory, infrastructure configuration testbed, etc. To start, I will develop
-a Proof-of-Concept Debian install with ansible. Later, I will bolt on the minimal
+laboratory, infrastructure configuration testbed, etc. Later, I will bolt on the minimal
 amount of wizardlab code that I need to enable this to be a standalone project.
 
 ## The motivation
@@ -104,7 +104,8 @@ into a baremetal bootable image, so baremetal servers can be installed with the 
 project as I used with VMs
 
 For image creation in the VM, we can use geniso to store the userdata and metadata on a tiny .iso that is mounted on VM creation. If we want to export those partitions for baremetal
-installation, it's just a matter ofbooting it, letting cloud-init do it's thing, and capturing the partiution data with `partclone` before putting it down to disk.
+installation, it's just a matter of booting it, letting cloud-init do it's thing, and 
+recapturing the partition data with `partclone` before putting it on baremetal disk.
 
 Easier said than done.
 
@@ -118,14 +119,6 @@ different on each distribution, so portability is a small issue with `bash` scri
 I take the same approach with `launch-virtual-disk.sh`. After running, you'll have a Debian
 virtual machine setup according to values set in `defaults.ini`
 
-Let's say you are using the default settings in this project's `defaults.ini`. The
-`launch-virtual-machine.sh` script asks you to enter a password when it generates your
-ssh key.
-
-Run `sudo virsh net-dhcp-leases --network default` to find the IP of your VM.
-From the project directory, you can ssh the VM you just stood up with:
-`ssh btw@192.168.122.X`
-
 
 ## Delivery System
 If all you want to do is produce a single VM for development, the project produces
@@ -135,16 +128,17 @@ does a very good job and is compatible with Cloud providers.
 
 I'll probably need to add a Terraform configuration later on, but for now my
 focus is on deploying to baremetal or Virtual machines using a PXE boot server.
+
 Vagrant does a good job at putting up a single server, and I do not need a custom
 Debian server to install `dnsmasq` and provide PXE services onto a virtual interface.
 
 Configure a linux bridge between the virtual interface and your physical interface,
-drop that into a configured VLAN on your infrastructure, and now you can install Debian
+drop that bridge onto a configured VLAN on your infrastructure, and now you can install Debian
 anywhere, on demand.
 
-A well configured system shouldn't have it's ip address baked into it's configuration
-anyways, and we can update production DNS and DHCP using a parallel process, and
-production systems can manage those services after system deployment.
+A well configured system shouldn't have it's ip address baked into the initial configuration
+anyways, and we can update production DNS and DHCP using a parallel process, and the
+production DNS/DHCP systems can manage those services after system deployment.
 
 `dnsmasq` management from the Vagrant launched VM is viable too, depending on your usecase.
 Networking between hypervisors would require some creativity, and this project isn't
@@ -152,20 +146,21 @@ about setting up production DNS/DHCP. Rather, it's a system for getting Debian o
 a computer, anywhere, and at any scale.
 
 I'll sidestep around dictating how people do DHCP/DNS because everyone's shop has an opinion
-about managing tons of ip addresses.
+about managing tons of ip addresses. I'll rely on the networking libvirtd sets up for user-level
+use. `virbr0` should be able to accomplish everything but deploying to baremetal.
 
-## Ansbile-driven custom Operating System pipeline
+Making the leap to baremetal is just about providing an alternative bridge to `virbr0`, like a
+`br50` that's bridged onto a external `Vlan50` that is configured in your switches.
+Adding a linux bridge is a pretty big deal, so I'll leave that as a task for the reader of
+these docs.
+
+## Ansbile-driven custom Operating System pipeline?
 I hope to design CI/CD integration that will be suitable for use in gitlab or alike.
 The itegration could publish ready-made disk images for virtual or baremetal deployment.
 Hoping to stay under the size limit for a free github repositiory for minimal Debian.
 
-## The two stages of configuration
-Cloud-int: Format disk partitions, setup a local admin account, install and enable core
-functions like SSH or ZFS.
-
-Ansible: Transform the minimal system installation into whatever tricked out server the
-use-case requires. Install IDEs and System Admin tools, setup containerization, configure
-hypervisor or file services, install a Code Versioning System.
+For example, to create and upload for distribution a set of debian installation images,
+I could run: `./vmctl build debian` from the .gitlab-ci file.
 
 ## Extending the idea of Wizardlab
 

@@ -1,0 +1,17 @@
+partitions:
+  label: "gpt"
+  esp:
+    number: 1
+    fs_type: "fat32"
+    part_end: "550MiB"
+    resize: false
+    mount: "/boot/EFI"
+    flags: ["esp"]
+  root:
+    number: 2
+    fs_type: "ext4"
+    part_end: "100%"
+    resize: true
+    mount: "/"
+    label: ["root"]
+

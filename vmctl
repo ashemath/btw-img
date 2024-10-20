@@ -2,8 +2,26 @@
 
 BATCH=0;
 SCENARIO=$1;
-if [ $SCENARIO = "launch" ] || [ $SCENARIO = "clean" ] ; then
+echo "Scenario is $SCENARIO";
+
+if [ $SCENARIO = "launch" ] || [ $SCENARIO = "clean" ] || [ $SCENARIO = "build" ]; then
+    VALIDSCENARIO=1;
+else
+    VALIDSCENARIO=0;
+fi
+echo "Valid is: $VALIDSCENARIO";
+
+if [ -f ./conf.d/$2.conf ] || [ -f ./conf.d/$2.build ]; then
+    VALIDCONFIG=1;
+else
+    VALIDCONFIG=0;
+fi
+
+if [ $VALIDSCENARIO -eq 1 ] && [ $VALIDCONFIG -eq 1 ] ; then
     CONFIG=$2;
+    echo "CONFIG is $CONFIG";
+else
+    echo "CONFIG not defined!";
 fi
 
 if [ $CONFIG = "all" ] ; then
@@ -11,15 +29,26 @@ if [ $CONFIG = "all" ] ; then
     echo "Batch detected!";
 fi
 
-if [ ! -f conf.d/$CONFIG.conf ] && [ $BATCH -eq 0 ]; then
+if [ ! $VALIDCONFIG ] && [ $BATCH -eq 0 ]; then
     echo "Config doesn't exist under configs for $2."
     exit 1;
+else
+    echo "Loading config!"
 fi
 
 # Launch a singular VM
 if [ $SCENARIO = "launch" ] && [ $BATCH -eq 0 ]; then
     ./scripts/prepare-cloud-img.sh
     ./scripts/launch-virtual-machine.sh -c conf.d/$CONFIG.conf;
+    exit 0;
+elif [ $SCENARIO = "build" ] && [ $VALIDCONFIG ]; then
+    echo "building!";
+    # Launch the builder vm. It has an extra empty disk attached
+    env $(cat conf.d/$CONFIG.build | sed "s/#.*//g") \
+    ./scripts/launch-virtual-machine.sh -c conf.d/builder.conf;
+    # Run the playbook to setup the spare drive as a configured Debian system
+    # Run the playbook to partclone capture and compress the spare disk image.
+    # SCP the artifacts from the remote output folder
     exit 0;
 # Clean a singular VM
 elif [ $SCENARIO = "clean" ] && [ $BATCH -eq 0 ]; then

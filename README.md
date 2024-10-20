@@ -1,10 +1,20 @@
 # btw-img
 System deployment and configuration tools by Bill the Wizard
 
-## Philosophy
-The goal is to have all the VMs and archives live in /tmp/.
-Trying to play nice with networked /home/ directories, and 
-to force good automation practice.
+## Status
+The next step is a playbook that with setup the spare disk
+as a bootable .qcow disk image file. Working on the first draft of
+the playbook.
+
+## Design Goal:
+Static framework of shell scripts to customize and launch Debian 
+virtual machines without administrative privileges.
+
+Build a custom Operating System image without using sudo
+privileges. Launch a quick VM for testing your project.
+Deploy a system image to hundreds of computers in minutes.
+
+Add or subtract from the `conf.d/` to enable or disable features.
 
 ## How to try it out
 
@@ -58,18 +68,17 @@ sed -i "s/default/testvm/" conf.d/testvm.conf
 ### Cleanup the new VM
 ./vmctl clean testvmm
 
+### Build a custom debian bootable .qcow2 disk image, debootstrap style
+./vmctl build debian
+
 ## Connect to a VM by executing the .ssh file under creds/
 ./creds/testvm.ssh
 ```
 
-### Makefile
-I'll utilize a Makefile to feature the capabilities of this project.
-At the moment, we launch the VM specified in default.ini, and we
-SSH a couple instructions to update apt and install docker.
 
 To launch a fresh Debian12 Virtual Machine and install Docker engine:
 ```
-$ make docker
+$ ./vmctl launch docker
 ```
 
 To open up the machine in virt-manager, you may need to click on 
