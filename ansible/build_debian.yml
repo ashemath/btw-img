@@ -113,7 +113,8 @@
         - mount -a
         - apt install -y linux-image-amd64
         - apt install -y grub-efi-amd64
-        - grub-install /dev/vdb
+        - grub-install --efi-directory /boot/efi
+        - grub-mkconfig -o /boot/grub/grub.cfg
         - update-grub
         - apt install -y network-manager
         - apt install -y openssh-server
