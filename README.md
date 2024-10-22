@@ -2,9 +2,8 @@
 System deployment and configuration tools by Bill the Wizard
 
 ## Status
-The next step is a playbook that with setup the spare disk
-as a bootable .qcow disk image file. Working on the first draft of
-the playbook. About to work out the partitioning and chroot work...
+Next is extending the basic build to include extra customizations,
+and loopifying a couple more steps of the build proccess.
 
 ## Design Goal:
 Static framework of shell scripts to customize and launch Debian 
@@ -56,7 +55,7 @@ For example:
 ### Does cleanup on all VMs under configs/
 ./vmctl clean all
 
-### Copy the configs/default.ini to a new file called configs/test.ini
+### Copy the configs/default.conf to a new file called configs/testvm.conf
 cp conf.d/default.conf conf.d/testvm.conf
 
 ### Change the name from default to testvm
