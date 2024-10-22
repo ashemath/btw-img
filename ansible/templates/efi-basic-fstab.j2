@@ -1,0 +1,7 @@
+{% for partition in ansible_devices.vdb.partitions | dict2items %}
+{% if partition.key == 'vdb2' %}
+UUID={{ partition.value.uuid }} / ext4 rw,discard,errors=remount-ro,x-systemd.growfs 1 0
+{% elif partition.key == 'vdb1' %}
+UUID={{ partition.value.uuid }} /boot/efi vfat umask=0077 1 0
+{% endif %}
+{% endfor %}

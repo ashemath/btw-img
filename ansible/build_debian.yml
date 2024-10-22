@@ -1,6 +1,9 @@
 ---
-- name: Build debian with debootstrap
+- name: Build minimal efi debian with debootstrap
   hosts: target
+  become: yes
+  gather_facts: false
+
   vars:
     Disk: "/dev/vdb"
     Layout: "layouts/efi-basic.yml"
@@ -9,6 +12,150 @@
     - name: import the partition data
       ansible.builtin.include_vars: "{{ Layout }}"
 
-    - name: Debug task
+    - name: Debug partitions
       ansible.builtin.debug:
-        msg: "It's working!"
+        msg: "{{ partitions | dict2items }}"
+
+    - name: ensure parted and dosfstools
+      ansible.builtin.apt:
+        name: "{{ item  }}"
+        update_cache: true
+        state: present
+      loop:
+        - parted
+        - dosfstools
+        - debootstrap
+        - schroot
+
+    - name: Partition the spare disk
+      community.general.parted:
+        device: "{{ Disk }}"
+        label: "gpt"
+        name: "{{ item.key }}"
+        number: "{{ item.value.number }}"
+        flags: "{{ item.value.flags | default(omit) }}"
+        state: present
+        part_start: "{{ item.value.part_start }}"
+        part_end: "{{ item.value.part_end }}"
+      loop: "{{ partitions | dict2items }}"
+
+    - name: Create filesystems
+      community.general.filesystem:
+        fstype: "{{item.value.fs_type}}"
+        device: "{{ Disk }}{{item.value.number}}"
+      loop: "{{ partitions | dict2items }}"
+
+    - name: create mountpoint for the root
+      ansible.builtin.file:
+        path: /mnt/debian/
+        state: directory
+    
+    - name: mount the root parition
+      ansible.posix.mount:
+        path: /mnt/debian
+        src: /dev/vdb2
+        fstype: ext4
+        state: mounted
+
+    - name: create mountpoint for the EFI
+      ansible.builtin.file:
+        path: /mnt/debian/boot/efi
+        state: directory
+
+    - name: mount the EFI parition
+      ansible.posix.mount:
+        path: /mnt/debian/boot/efi
+        src: /dev/vdb1
+        fstype: vfat
+        state: mounted
+
+    - name: debootstrap the spare disk's root.
+      ansible.builtin.command: 
+        cmd: debootstrap bookworm /mnt/debian
+        creates: /mnt/debian/usr/bin/sh
+
+    - name: Gather ansible_devices
+      setup:
+        gather_subset:
+          - "devices"
+          - "min"
+
+    - name: configure the chroot fstab
+      ansible.builtin.template:
+        src: "templates/efi-basic-fstab.j2"
+        dest: "/mnt/debian/etc/fstab"
+
+    - name: add the debian-build chroot config
+      ansible.builtin.copy:
+        src: files/debian-build
+        dest: /etc/schroot/chroot.d/debian-build
+
+    - name: ensure the folder in etc for schroot config files exists
+      ansible.builtin.file:
+        path: /etc/schroot/build-debian
+        state: directory
+
+    - name: copy files to the chroot config folder
+      ansible.builtin.copy:
+        src: "files/schroot.{{ item }}"
+        dest: "/etc/schroot/build-debian/{{ item }}"
+      loop:
+        - fstab
+        - copyfiles
+        - nssdatabases
+
+    - name: start the chroot!
+      ansible.builtin.command: schroot -b -d "/" -c build -n buildsession
+
+    - name: test the chroot!
+      ansible.builtin.command: "schroot -r -c buildsession -d '/' -- {{ item }}"
+      loop:
+        - mount -a
+        - apt install -y linux-image-amd64
+        - apt install -y grub-efi-amd64
+        - grub-install /dev/vdb
+        - update-grub
+        - apt install -y network-manager
+        - apt install -y openssh-server
+        - apt install -y sudo
+        - apt install -y cloud-init
+        - "useradd -m  --shell /bin/bash {{ admin_user }}"
+        - "usermod -aG sudo {{ admin_user }}"
+        - sh -c "echo '{{ admin_user }}:{{ admin_passwd }}' | chpasswd"
+        - rm /etc/debian_chroot
+        - update-initramfs -u
+      notify: "stop_chroot"
+
+    - name: flush handler
+      ansible.builtin.meta: flush_handlers
+
+    - name: Ask the disks to sync
+      ansible.builtin.command: sh -c "sleep 5; sync"
+
+    - name: unmount the EFI parition
+      ansible.posix.mount:
+        path: /mnt/debian/boot/efi
+        src: /dev/vdb1
+        fstype: vfat
+        state: absent
+
+    - name: Ask the disks to sync
+      ansible.builtin.command: sh -c "sleep 5; sync"
+
+    - name: unmount the root parition
+      ansible.posix.mount:
+        path: /mnt/debian
+        src: /dev/vdb2
+        fstype: ext4
+        state: absent
+
+    - name: Congratulations
+      ansible.builtin.debug:
+        msg: "Image build complete! Check out {{ build_path }} |
+          username: {{ admin_user }} password: {{ admin_passwd }}"
+
+  handlers:
+    - name: stop the chroot!
+      ansible.builtin.command: schroot -e -c buildsession -d "/"
+      listen: "stop_chroot"
+
