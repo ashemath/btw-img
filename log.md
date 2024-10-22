@@ -29,6 +29,10 @@ so let's get circular about it and generate the conf.d/ file we needs to launch 
 Maybe I can add a `"./vmctl clean default purge` command to delete the files and storage after
 shutting down and removing the test VM.
 
+Right now, I get a working debian disk. I'll need to work on cloud-init stuff to
+get it to boot right-quick like the other VMs. As is, the boot requires selecting the
+grubx64.efi file from the firmware menu.
+
 ## Finding a focus
 Wizardlab was a lot of fun to design, but it's too loose about how it operates.
 While I could go ahead and rework all of that code, I feel like taking some
