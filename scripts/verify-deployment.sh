@@ -35,6 +35,7 @@ do
 done
 if [ ! -z $POSTINIT ] ; then
     echo "Running postinit!"
+    sleep 2;
     cat $POSTINIT | ./$sshfile;
 fi
 
