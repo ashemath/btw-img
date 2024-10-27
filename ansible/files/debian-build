@@ -1,0 +1,9 @@
+[debian-build]
+description=Build environment
+aliases=build
+type=directory
+directory=/mnt/debian
+users=root
+root-groups=root
+profile=build-debian
+personality=linux

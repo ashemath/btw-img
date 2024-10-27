@@ -1,14 +1,13 @@
 #!/bin/sh
 
-#if [ -z $1 ] ; then
-#    echo "loading default.ini"
-#    . ./default.ini;
-#else
-#    if [ $1 = '-c' ] ; then
-#        echo "loading config from $2";
-#        . ./$2;
-#    fi
-#fi
+if [ $1 = '-c' ] && [ -f $2 ] ; then
+    echo "loading config from $2";
+    . $2;
+fi
+
+if [ ! -z $POSTINIT ] ; then
+    echo "Post-init detected! $POSTINIT";
+fi
 
 
 ## Wait for the IP address to update in libvirt's DHCP service
@@ -17,15 +16,26 @@
 PING=0
 IP="Not Found...yet..."
 echo "Waiting for connection..."
+sleep 1;
 while [ $PING = 0 ];
 do
-    sleep 3;
-    TESTPING=$(ping -c 1 $NAME 2> /dev/null | grep " 0%");
+    IP=$(dig $NAME @192.168.122.1 | grep ".*IN.*A.*192.168.122" | sed "s/\t//g" | sed "s/INA/+/g" | cut -d"+" -f2);
+    echo "IP is set to: $IP";
+    TESTPING=$(ping -c 1 $IP | grep " 0%");
     if [ -z "$TESTPING" ] ; then
         echo "..."
     else
         PING=1;
-        IP=$(host $NAME | head -n1 | cut -d" " -f4)
-        echo -e "Deployment successful! try connecting with:\nssh -i $SSHKEYFILE -o StrictHostKeyChecking=no $USER@$IP"
+        sshfile="creds/$NAME.ssh"
+        echo "ssh -i $SSHKEYFILE -o StrictHostKeyChecking=no $USER@$IP" \
+            | tee | tail -n 1 > $sshfile;
+        chmod 700 $sshfile;
+        sleep 2;
     fi
 done
+if [ ! -z $POSTINIT ] ; then
+    echo "Running postinit!"
+    sleep 2;
+    cat $POSTINIT | ./$sshfile;
+fi
+

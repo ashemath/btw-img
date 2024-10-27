@@ -1,0 +1,71 @@
+#!/bin/sh
+
+BATCH=0;
+SCENARIO=$1;
+echo "Scenario is $SCENARIO";
+
+if [ $SCENARIO = "launch" ] || [ $SCENARIO = "clean" ] || [ $SCENARIO = "build" ]; then
+    VALIDSCENARIO=1;
+else
+    VALIDSCENARIO=0;
+fi
+echo "Valid is: $VALIDSCENARIO";
+
+if [ -f ./conf.d/$2.conf ] || [ -f ./conf.d/$2.build ]; then
+    VALIDCONFIG=1;
+else
+    VALIDCONFIG=0;
+fi
+
+if [ $VALIDSCENARIO -eq 1 ] && [ $VALIDCONFIG -eq 1 ] ; then
+    CONFIG=$2;
+    echo "CONFIG is $CONFIG";
+else
+    echo "CONFIG not defined!";
+fi
+
+if [ $CONFIG = "all" ] ; then
+    BATCH=1;
+    echo "Batch detected!";
+fi
+
+if [ ! $VALIDCONFIG ] && [ $BATCH -eq 0 ]; then
+    echo "Config doesn't exist under configs for $2."
+    exit 1;
+else
+    echo "Loading config!"
+fi
+
+# Launch a singular VM
+if [ $SCENARIO = "launch" ] && [ $BATCH -eq 0 ]; then
+    ./scripts/prepare-cloud-img.sh
+    ./scripts/launch-virtual-machine.sh -c conf.d/$CONFIG.conf;
+    exit 0;
+elif [ $SCENARIO = "build" ] && [ $VALIDCONFIG ]; then
+    echo "building $CONFIG!";
+    # Launch the builder vm. It has an extra empty disk attached
+    env $(cat conf.d/$CONFIG.build | sed "s/#.*//g") \
+    ./scripts/launch-virtual-machine.sh -c conf.d/builder.conf;
+    # Configure ansible to hit the builder VM
+    ./scripts/ansible-configure.sh builder
+    sleep 5 && echo "waiting over...";
+    # Run the playbook to setup the spare drive as a configured Debian system
+    . venv/bin/activate && ansible-playbook -i ansible/inventory ansible/build_$CONFIG.yml
+    # . venv/bin/activate && ansible-playbook -i ansible/inventory ansible/setup_xfce.yml
+    # Run the playbook to partclone capture and compress the spare disk image.
+    # SCP the artifacts from the remote output folder
+    exit 0;
+# Clean a singular VM
+elif [ $SCENARIO = "clean" ] && [ $BATCH -eq 0 ]; then
+    ./scripts/cleanup.sh -c conf.d/$CONFIG.conf;
+    exit 0;
+# Launch all VMs
+elif [ $SCENARIO = "launch" ] && [ $BATCH -eq 1 ]; then
+    ./scripts/prepare-cloud-img.sh
+    for config in conf.d/*.conf; do ./scripts/launch-virtual-machine.sh -c $config; done;
+    exit 0;
+# Clean all VMs
+elif [ $SCENARIO = "clean" ] && [ $BATCH -eq 1 ]; then
+    for config in conf.d/*.conf; do ./scripts/cleanup.sh -c $config; done;
+    exit 0;
+fi

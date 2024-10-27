@@ -3,10 +3,11 @@
 START=$PWD;
 
 # Import default values. Substitute values provided by config.ini if supplied
-. ./default.ini;
+. conf.d/default.conf;
 if [ $1 = '-c' ] ; then
-    echo "loading config from $2";
-    . ./$2;
+    CONFIG=$2
+    echo "loading config from $CONFIG";
+    . $CONFIG;
 fi
 
 START=$PWD;
@@ -22,7 +23,7 @@ else
     echo "$NAME Folder already exists"
 fi
 
-if [ ! -d ./creds/ ]; then
+if [ ! -d ./creds ]; then
     echo "Making creds folder..."
     mkdir ./creds;
 else
@@ -31,7 +32,7 @@ fi
 
 # Copy over the converted vanilla Debian .qcow2 disk
 cp ${ARCHIVEPATH}/images/latest/disk.qcow2 ${DIR}/${NAME}.qcow2
-qemu-img resize ${DIR}/${NAME}.qcow2 +${SIZE}G
+qemu-img resize ${DIR}/${NAME}.qcow2 +${SIZE}
 
 if [ -z $SSHPUBFILE ]; then
     SSHPUBFILE=./creds/$NAME.pub;
@@ -46,25 +47,42 @@ echo "Injecting ""$SSHPUBFILE"" "
 SSHPUBKEY=$(cat $SSHPUBFILE);
 
 # Let's start with the meta-data file
-echo "instance-id: $NAME" > $MDPATH;
-echo "local-hostname: $NAME" >> $MDPATH;
+cat << EOF > $MDPATH
+instance-id: $NAME
+local-hostname: $NAME
+EOF
 
-echo "#cloud-config" > $UDPATH;
-echo "" >> $UDPATH;
-echo "users:" >> $UDPATH;
-echo "  - name: $USER" >> $UDPATH;
-echo "    ssh_authorized_keys:" >> $UDPATH;
-echo "      - $SSHPUBKEY" >> $UDPATH;
-echo "    sudo: [\"ALL=(ALL) NOPASSWD:ALL\"]" >> $UDPATH;
-echo "    groups: sudo" >> $UDPATH;
-echo "    shell: /bin/bash" >> $UDPATH;
+cat << EOF > $UDPATH
+#cloud-config
+users:
+- name: $USER
+  ssh_authorized_keys:
+    - $SSHPUBKEY
+  sudo: ALL=(ALL) NOPASSWD:ALL
+  groups: sudo
+  shell: /bin/bash
+EOF
+
+if [ ! -z $BUILDPATH ] ; then
+    echo "Adding the spare disk! buildpath is: $BUILDPATH"
+    qemu-img create -f qcow2 -o cluster_size=4096 $BUILDPATH $BUILDSIZE;
+    disks="--disk path=/tmp/$NAME/$NAME.qcow2,format=qcow2 --disk path=$BUILDPATH,format=qcow2";
+else
+    echo "No BUILDPATH";
+    disks="--disk path=/tmp/$NAME/$NAME.qcow2,format=qcow2";
+fi
 
 cd $DIR
 echo "Generating cloud-init .iso for customizing at boot..."
 genisoimage -output cidata.iso -V cidata -r -J user-data meta-data
 echo "Launching VM"
 echo $PWD
-virt-install --check all=off --name=$NAME --ram=$RAM --boot uefi --vcpus=$VCPUS --import --disk path=$NAME.qcow2,format=qcow2 --disk path=cidata.iso,device=cdrom --os-variant name=debian12 --network bridge=virbr0,model=virtio --graphics vnc,listen=0.0.0.0 --noautoconsole
+virt-install --check all=off --name=$NAME --ram=$RAM --boot uefi --vcpus=$VCPUS \
+    --import $disks --disk path=cidata.iso,device=cdrom --os-variant name=debian11 \
+    --network bridge=virbr0,model=virtio \
+    --graphics vnc,listen=0.0.0.0 \
+    --noautoconsole
 
 cd $START
-env NAME=$NAME USER=$USER SSHKEYFILE=$SSHKEYFILE ./scripts/verify-deployment.sh
+echo "Starting deployment verification!..."
+env SSHKEYFILE=$SSHKEYFILE ./scripts/verify-deployment.sh -c $CONFIG
