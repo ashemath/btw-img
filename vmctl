@@ -43,6 +43,7 @@ if [ $SCENARIO = "launch" ] && [ $BATCH -eq 0 ]; then
     exit 0;
 elif [ $SCENARIO = "build" ] && [ $VALIDCONFIG ]; then
     echo "building $CONFIG!";
+    ./scripts/prepare-cloud-img.sh;
     # Launch the builder vm. It has an extra empty disk attached
     env $(cat conf.d/$CONFIG.build | sed "s/#.*//g") \
     ./scripts/launch-virtual-machine.sh -c conf.d/builder.conf;
