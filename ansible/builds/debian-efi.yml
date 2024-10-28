@@ -1,0 +1,18 @@
+build_packages:
+  - apt install -y linux-image-amd64
+  - apt install -y grub-efi-amd64
+  - apt install -y network-manager
+  - apt install -y openssh-server
+  - apt install -y sudo
+  - apt install -y cloud-init
+
+build_commands:
+  - "useradd -m  --shell /bin/bash {{ admin_user }}"
+  - "usermod -aG sudo {{ admin_user }}"
+  - sh -c "echo '{{ admin_user }}:{{ admin_passwd }}' | chpasswd"
+  - grub-install "{{ Disk }}"
+  - grub-mkconfig -o /boot/grub/grub.cfg
+  - update-grub
+  - rm /etc/debian_chroot
+  - update-initramfs -u
+

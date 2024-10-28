@@ -7,10 +7,14 @@
   vars:
     Disk: "/dev/vdb"
     Layout: "layouts/efi-basic.yml"
+    Build: "builds/debian-efi.yml"
 
   tasks:
     - name: import the partition data
       ansible.builtin.include_vars: "{{ Layout }}"
+
+    - name: import the partition data
+      ansible.builtin.include_vars: "{{ Build }}"
 
     - name: Debug partitions
       ansible.builtin.debug:
@@ -18,7 +22,7 @@
 
     - name: ensure parted and dosfstools
       ansible.builtin.apt:
-        name: "{{ item  }}"
+        name: "{{ item }}"
         update_cache: true
         state: present
       loop:
@@ -41,33 +45,42 @@
 
     - name: Create filesystems
       community.general.filesystem:
-        fstype: "{{item.value.fs_type}}"
+        fstype: "{{item.value.fstype}}"
         device: "{{ Disk }}{{item.value.number}}"
       loop: "{{ partitions | dict2items }}"
 
     - name: create mountpoint for the root
       ansible.builtin.file:
-        path: /mnt/debian/
+        path: "/mnt/debian/{{ item.value.mount }}"
         state: directory
+      loop: "{{ partitions | dict2items }}"
+      when: item.value.mount == '/'
     
     - name: mount the root parition
       ansible.posix.mount:
-        path: /mnt/debian
-        src: /dev/vdb2
-        fstype: ext4
+        path: "/mnt/debian{{ item.value.mount }}"
+        src: "{{ Disk }}{{ item.value.number }}"
+        fstype: "{{ item.value.fstype }}"
         state: mounted
+      loop: "{{ partitions | dict2items }}"
+      when: item.value.mount == '/'
 
-    - name: create mountpoint for the EFI
+    - name: create mountpoint for the efi
       ansible.builtin.file:
-        path: /mnt/debian/boot/efi
+        path: "/mnt/debian/{{ item.value.mount }}"
         state: directory
-
-    - name: mount the EFI parition
+      loop: "{{ partitions | dict2items }}"
+      when: item.value.mount == '/boot/efi'
+    
+    - name: mount the efi parition
       ansible.posix.mount:
-        path: /mnt/debian/boot/efi
-        src: /dev/vdb1
-        fstype: vfat
+        path: "/mnt/debian{{ item.value.mount }}"
+        src: "{{ Disk }}{{ item.value.number }}"
+        fstype: "{{ item.value.fstype }}"
         state: mounted
+      loop: "{{ partitions | dict2items }}"
+      when: item.value.mount == '/boot/efi'
+
 
     - name: debootstrap the spare disk's root.
       ansible.builtin.command: 
@@ -107,24 +120,16 @@
     - name: start the chroot!
       ansible.builtin.command: schroot -b -d "/" -c build -n buildsession
 
-    - name: test the chroot!
+    - name: mount the chroot partitions!
+      ansible.builtin.command: "schroot -r -c buildsession -d '/' -- mount -a"
+
+    - name: install packages!
       ansible.builtin.command: "schroot -r -c buildsession -d '/' -- {{ item }}"
-      loop:
-        - mount -a
-        - apt install -y linux-image-amd64
-        - apt install -y grub-efi-amd64
-        - grub-install --efi-directory /boot/efi
-        - grub-mkconfig -o /boot/grub/grub.cfg
-        - update-grub
-        - apt install -y network-manager
-        - apt install -y openssh-server
-        - apt install -y sudo
-        - apt install -y cloud-init
-        - "useradd -m  --shell /bin/bash {{ admin_user }}"
-        - "usermod -aG sudo {{ admin_user }}"
-        - sh -c "echo '{{ admin_user }}:{{ admin_passwd }}' | chpasswd"
-        - rm /etc/debian_chroot
-        - update-initramfs -u
+      loop: "{{ build_packages }}"
+
+    - name: run commands!
+      ansible.builtin.command: "schroot -r -c buildsession -d '/' -- {{ item }}"
+      loop: "{{ build_commands }}"
       notify: "stop_chroot"
 
     - name: flush handler
@@ -133,22 +138,13 @@
     - name: Ask the disks to sync
       ansible.builtin.command: sh -c "sleep 5; sync"
 
-    - name: unmount the EFI parition
+    - name: unmount the partitions
       ansible.posix.mount:
-        path: /mnt/debian/boot/efi
-        src: /dev/vdb1
-        fstype: vfat
-        state: absent
-
-    - name: Ask the disks to sync
-      ansible.builtin.command: sh -c "sleep 5; sync"
-
-    - name: unmount the root parition
-      ansible.posix.mount:
-        path: /mnt/debian
-        src: /dev/vdb2
-        fstype: ext4
-        state: absent
+        path: "/mnt/debian/{{ item.value.mount }}"
+        src: "{{ Disk}}{{ item.value.number }}"
+        fstype: "{{ item.value.fstype }}"
+        state: unmounted
+      loop: "{{ partitions | dict2items }}"
 
     - name: Congratulations
       ansible.builtin.debug:

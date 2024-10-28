@@ -10,4 +10,9 @@ with open('/usr/share/dict/words') as f:
     password += ''.join(secrets.choice(string.digits) for i in range(3))
 f.close()
 
-print(password)
+sanitized = ""
+for letter in password:
+    if (letter != '\''):
+        sanitized += letter
+
+print(sanitized)
