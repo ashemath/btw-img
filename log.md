@@ -14,6 +14,12 @@ finding these helpful:
 [create-vm-using-libvirt-cloud-images-cloud-init](https://sumit-ghosh.com/posts/create-vm-using-libvirt-cloud-images-cloud-init)
 [build-a-bootable-qcow2-image-with-debootstrap](https://medium.com/@xiazihao1996/build-a-bootable-qcow2-image-with-debootstrap-ea5862e7325e)
 
+## Taking a detour
+Starting work on the script that will swap wirtual hard drive files
+so that I can setup a second stage configuration of the booted custom
+Debian. Need to run a second set of ansible tasks to set hostname, install
+software, and configure workloads.
+
 ## Nearly There
 Today I uploaded the working Proof of Concept for a minimal debian build onto
 a .qcow image file. It's a humble beginning, but I am scheming to extend this into

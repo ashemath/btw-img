@@ -40,6 +40,7 @@ ansible_host_key_checking=False
 ansible_user="btw"
 admin_user="$admin_user"
 admin_passwd="$admin_passwd"
+admin_pub_key="$(cat creds/builder.pub)"
 build_name="$build_name"
 build_path="$build_path"
 ansible_private_key_file="creds/$1"
