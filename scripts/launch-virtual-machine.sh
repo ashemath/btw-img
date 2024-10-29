@@ -66,8 +66,8 @@ EOF
 if [ ! -z $BUILDNAME ] ; then
     echo "Adding the spare disk! buildname is: $BUILDNAME"
     mkdir /tmp/$BUILDNAME
-    qemu-img create -f qcow2 -o cluster_size=4096 /tmp/$BUILDNAME/$BUILDNAME.qcow $BUILDSIZE;
-    disks="--disk path=/tmp/$NAME/$NAME.qcow2,format=qcow2 --disk path=/tmp/$BUILDNAME/$BUILDNAME.qcow,format=qcow2";
+    qemu-img create -f qcow2 -o cluster_size=4096 /tmp/$BUILDNAME/$BUILDNAME.qcow2 $BUILDSIZE;
+    disks="--disk path=/tmp/$NAME/$NAME.qcow2,format=qcow2 --disk path=/tmp/$BUILDNAME/$BUILDNAME.qcow2,format=qcow2";
 else
     echo "No BUILDPATH";
     disks="--disk path=/tmp/$NAME/$NAME.qcow2,format=qcow2";

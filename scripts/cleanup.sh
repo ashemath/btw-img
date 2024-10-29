@@ -2,6 +2,9 @@
 if [ $1 = '-c' ] && [ -f $2 ] ; then
     echo "loading config from $2";
     . $2;
+else
+    echo "Clean target not valid."
+    exit 1;
 fi
 
 if [ -f ~/.config/libvirt/qemu/save/$NAME.save ] ; then
