@@ -1,12 +1,11 @@
 # Parameters for creating the spare disk image for builder
+BUILD=debian
 BUILDNAME=debian
-BUILDPATH=/tmp/debian.qcow2
 BUILDSIZE=20G
-
-PARTITIONS="./ansible/layouts/efi-basic.yml"
 
 # Script to run inside the chroot environment after basic setup
 BUILDPOSTINIT="./conf.d/docker.sh"
+LAYOUT="efi-basic"
 
 # Admin user to setup initial admin access on built images
 ADMIN_USER="btw"

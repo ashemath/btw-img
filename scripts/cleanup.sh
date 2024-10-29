@@ -4,13 +4,20 @@ if [ $1 = '-c' ] && [ -f $2 ] ; then
     . $2;
 fi
 
-virsh shutdown $NAME
-virsh destroy --domain $NAME
-virsh undefine --nvram --domain $NAME
+if [ -f ~/.config/libvirt/qemu/save/$NAME.save ] ; then
+    rm -f ~/.config/libvirt/qemu/save/$NAME.save
+    echo "Removed $NAME.save!"
+fi
 
-IP=$(cat creds/$NAME.ssh | cut -d "@" -f2);
+virsh shutdown $NAME 1> /dev/null;
+virsh undefine --nvram --domain $NAME 1> /dev/null
+virsh destroy --domain $NAME 1> /dev/null
 
-ssh-keygen -f "/home/bill/.ssh/known_hosts" -R "$IP"
+IP=$(cat creds/$NAME.ssh 1> /dev/null | cut -d "@" -f2);
+
+if [ ! -z $IP ] ; then
+    ssh-keygen -f "/home/bill/.ssh/known_hosts" -R "$IP"
+fi
 
 if [ -n $VMPATH ]; then
     rm -rf $VMPATH$NAME
