@@ -23,23 +23,23 @@ VDB=` virsh domblklist --domain builder | grep 'vdb' | awk '{ print $2 }' `;
 echo "VDA is $VDA";
 echo "VDB is $VDB";
 
-
+BUILDXML=/tmp/$BUILDNAME/$BUILDNAME.xml;
 if [ $VDA = "/tmp/builder/builder.qcow2" ] && [ $VDB = $BUILDPATH ]; then
-    echo "Attaching the spare disk!";
-    virsh detach-disk --domain builder /tmp/builder/builder.qcow2 --config
-    virsh detach-disk --domain builder $BUILDPATH --config
-    virsh attach-disk --domain builder $BUILDPATH --target vda --config
-#elif [ $VDA = "$BUILDPATH" ] && [ $VDB="-" ] ; then
+    echo "creating $BUILDXML VM with virt-xml!";
+    virsh dumpxml --domain builder > $BUILDXML;
+    echo "$(cat $BUILDXML | virt-xml --remove-device --disk 1)" > $BUILDXML;
+    echo "$(cat $BUILDXML | virt-xml --remove-device --disk 1)" > $BUILDXML;
+    echo "$(cat $BUILDXML | virt-xml --add-device --disk $VDB)" > $BUILDXML;
+    sed -i "s#<name>builder</name>#<name>$BUILDNAME</name>#" $BUILDXML;
+    sed -i "s#<uuid>.*</uuid>##" $BUILDXML;
 else
     echo "Attaching just the builder disk!";
-    virsh detach-disk --domain builder $BUILDPATH --target vda --config
-    virsh attach-disk --domain builder /tmp/builder/builder.qcow2 --target vda --config
-    virsh attach-disk --domain builder $BUILDPATH --target vdb --config
 fi
 
 BUILDERSTATUS=$(virsh dominfo --domain builder | grep 'State' | awk '{ print $2 }');
 if [ $BUILDERSTATUS = 'shut' ]; then
     virsh start --domain builder;
     echo "Staartup time!"
+    virsh create $BUILDXML;
 fi
 
