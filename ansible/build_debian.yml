@@ -81,11 +81,16 @@
       loop: "{{ partitions | dict2items }}"
       when: item.value.mount == '/boot/efi'
 
-
     - name: debootstrap the spare disk's root.
       ansible.builtin.command: 
         cmd: debootstrap bookworm /mnt/debian
         creates: /mnt/debian/usr/bin/sh
+
+    - name: copy over the cloud image's cloud-init config.
+      ansible.builtin.copy:
+        src: "/etc/cloud"
+        dest: "/mnt/debian/etc/cloud"
+        remote_src: true
 
     - name: Gather ansible_devices
       setup:

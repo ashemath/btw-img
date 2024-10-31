@@ -2,7 +2,6 @@
 
 START=$PWD;
 
-# Import default values. Substitute values provided by config.ini if supplied
 . conf.d/default.conf;
 if [ $1 = '-c' ] ; then
     CONFIG=$2

@@ -2,8 +2,12 @@
 System deployment and configuration tools by Bill the Wizard
 
 ## Status
-Next is extending the basic build to include extra customizations,
-and loopifying a couple more steps of the build proccess.
+I have worked out how to transition from the cloud image VM to the system wew build with
+the chroot on the spare disk. Next, we'll go into another round of configuration management
+to adjust properties that we can't set in the chroot environment, like `hostname`.
+
+While we're at it, we'll have an opportunity to install additional software like a desktop environment, IDE, productivity suite, docker engine, etc.
+
 
 ## Design Goal:
 Static framework of shell scripts to customize and launch Debian 

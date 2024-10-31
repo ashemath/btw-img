@@ -7,7 +7,11 @@ BUILDERSTATUS=$(virsh dominfo --domain builder | grep 'State' | awk '{ print $2 
 
 if [ -f "./conf.d/$1.build" ] ; then
     . ./conf.d/$1.build;
-    BUILDPATH="/tmp/$BUILDNAME/$BUILDNAME.qcow2"
+    BUILDPATH="/tmp/$BUILDNAME/$BUILDNAME.qcow2";
+    DOBUILD=1;
+else
+    echo "Need build requires a valid config!"
+    exit 1;
 fi
 
 if [ $BUILDERSTATUS = 'running' ]; then
@@ -29,16 +33,11 @@ if [ $VDA = "/tmp/builder/builder.qcow2" ] && [ $VDB = $BUILDPATH ]; then
     virsh dumpxml --domain builder > $BUILDXML;
     echo "$(cat $BUILDXML | virt-xml --remove-device --disk 1)" > $BUILDXML;
     echo "$(cat $BUILDXML | virt-xml --remove-device --disk 1)" > $BUILDXML;
-    echo "$(cat $BUILDXML | virt-xml --add-device --disk $VDB)" > $BUILDXML;
-    sed -i "s#<name>builder</name>#<name>$BUILDNAME</name>#" $BUILDXML;
-    sed -i "s#<uuid>.*</uuid>##" $BUILDXML;
-else
-    echo "Attaching just the builder disk!";
+    echo "$(cat $BUILDXML | virt-xml --add-device --disk $BUILDPATH)" > $BUILDXML;
 fi
 
 BUILDERSTATUS=$(virsh dominfo --domain builder | grep 'State' | awk '{ print $2 }');
-if [ $BUILDERSTATUS = 'shut' ]; then
-    virsh start --domain builder;
+if [ $BUILDERSTATUS = 'shut' ] && [ $DOBUILD -eq 1 ]; then
     echo "Staartup time!"
     virsh create $BUILDXML;
 fi

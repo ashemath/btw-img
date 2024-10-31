@@ -5,6 +5,10 @@ if [ $1 = '-c' ] && [ -f $2 ] ; then
     . $2;
 fi
 
+if [ -f "creds/$2" ] ; then
+    SSHKEYFILE="creds/$2"
+fi
+
 if [ ! -z $POSTINIT ] ; then
     echo "Post-init detected! $POSTINIT";
 fi
@@ -17,11 +21,12 @@ PING=0
 IP="Not Found...yet..."
 echo "Waiting for connection..."
 sleep 1;
+IP=$(dig $NAME @192.168.122.1 | grep ".*IN.*A.*192.168.122" | sed "s/\t//g" | sed "s/INA/+/g" | cut -d"+" -f2);
 while [ $PING = 0 ];
 do
-    IP=$(dig $NAME @192.168.122.1 | grep ".*IN.*A.*192.168.122" | sed "s/\t//g" | sed "s/INA/+/g" | cut -d"+" -f2);
     echo "IP is set to: $IP";
     TESTPING=$(ping -c 1 $IP | grep " 0%");
+    sleep 2;
     if [ -z "$TESTPING" ] ; then
         echo "..."
     else
@@ -30,8 +35,8 @@ do
         echo "ssh -i $SSHKEYFILE -o StrictHostKeyChecking=no $USER@$IP" \
             | tee | tail -n 1 > $sshfile;
         chmod 700 $sshfile;
-        sleep 2;
     fi
+    IP=$(dig $NAME @192.168.122.1 | grep ".*IN.*A.*192.168.122" | sed "s/\t//g" | sed "s/INA/+/g" | cut -d"+" -f2);
 done
 if [ ! -z $POSTINIT ] ; then
     echo "Running postinit!"

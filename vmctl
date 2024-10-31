@@ -52,7 +52,12 @@ elif [ $SCENARIO = "build" ] && [ $VALIDCONFIG ]; then
     sleep 5 && echo "waiting over...";
     # Run the playbook to setup the spare drive as a configured Debian system
     . venv/bin/activate && ansible-playbook -i ansible/inventory ansible/build_$CONFIG.yml
-    # . venv/bin/activate && ansible-playbook -i ansible/inventory ansible/setup_xfce.yml
+    # Regenerate the BUILDER VM with the spare drive as the system disk.
+    ./scripts/disk-swap.sh $CONFIG;
+    # Rediscover the builder VM because the host has a new IP. Refresh SSHFILE
+    ./scripts/verify-deployment.sh -c conf.d/builder.conf;
+    #  Reconfigure ansible inventory to target the child system
+    ./scripts/ansible-configure.sh builder
     # Run the playbook to partclone capture and compress the spare disk image.
     # SCP the artifacts from the remote output folder
     exit 0;
